@@ -104,16 +104,9 @@ class RelayManager:
 
         if not event.verify():
             raise RelayException(f"Could not publish {event.id}: failed to verify signature {event.signature}")
-        from websocket import WebSocketConnectionClosedException
-        post_stats = {}
+
         with self.lock:
             for relay in self.relays.values():
                 if relay.policy.should_write:
-                    try:
-                        relay.publish(event.to_message())
-                        post_stats[relay.url] = True
-                    except WebSocketConnectionClosedException:
-                        post_stats[relay.url] = False
-                        print(f"Connection to {relay.url} already closed, couldn't post to this relay.")
-            return post_stats
+                    relay.publish(event.to_message())
 
